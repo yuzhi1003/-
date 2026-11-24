@@ -9,8 +9,6 @@ jobs:
       with:
         distribution: 'zulu'
         java-version: '17'
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
     - name: Prepare Files
       run: |
         mkdir -p app/src/main/java/com/yuzhi/banghui
@@ -67,7 +65,9 @@ jobs:
         echo "    }" >> app/src/main/java/com/yuzhi/banghui/MainActivity.java
         echo "}" >> app/src/main/java/com/yuzhi/banghui/MainActivity.java
     - name: Build with Gradle
-      run: gradle assembleDebug
+      run: |
+        gradle wrapper
+        ./gradlew assembleDebug
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
