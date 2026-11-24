@@ -1,0 +1,76 @@
+name: Build APK
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+    - uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '8.5'
+    - name: Prepare Files
+      run: |
+        mkdir -p app/src/main/java/com/yuzhi/banghui
+        mkdir -p app/src/main/assets
+        cp index.html app/src/main/assets/
+        
+        echo 'rootProject.name = "BanghuiApp"' > settings.gradle
+        echo "include ':app'" >> settings.gradle
+        
+        echo "buildscript {" > build.gradle
+        echo "    repositories { google(); mavenCentral() }" >> build.gradle
+        echo "    dependencies { classpath 'com.android.tools.build:gradle:8.1.0' }" >> build.gradle
+        echo "}" >> build.gradle
+        
+        echo "apply plugin: 'com.android.application'" > app/build.gradle
+        echo "android {" >> app/build.gradle
+        echo "    namespace 'com.yuzhi.banghui'" >> app/build.gradle
+        echo "    compileSdk 34" >> app/build.gradle
+        echo "    defaultConfig {" >> app/build.gradle
+        echo "        applicationId \"com.yuzhi.banghui\"" >> app/build.gradle
+        echo "        minSdk 24" >> app/build.gradle
+        echo "        targetSdk 34" >> app/build.gradle
+        echo "        versionCode 1" >> app/build.gradle
+        echo "        versionName \"1.0\"" >> app/build.gradle
+        echo "    }" >> app/build.gradle
+        echo "}" >> app/build.gradle
+        
+        echo '<?xml version="1.0" encoding="utf-8"?>' > app/src/main/AndroidManifest.xml
+        echo '<manifest xmlns:android="http://schemas.android.com/apk/res/android">' >> app/src/main/AndroidManifest.xml
+        echo '    <application android:label="帮会交接">' >> app/src/main/AndroidManifest.xml
+        echo '        <activity android:name=".MainActivity" android:exported="true">' >> app/src/main/AndroidManifest.xml
+        echo '            <intent-filter>' >> app/src/main/AndroidManifest.xml
+        echo '                <action android:name="android.intent.action.MAIN" />' >> app/src/main/AndroidManifest.xml
+        echo '                <category android:name="android.intent.category.LAUNCHER" />' >> app/src/main/AndroidManifest.xml
+        echo '            </intent-filter>' >> app/src/main/AndroidManifest.xml
+        echo '        </activity>' >> app/src/main/AndroidManifest.xml
+        echo '    </application>' >> app/src/main/AndroidManifest.xml
+        echo '</manifest>' >> app/src/main/AndroidManifest.xml
+        
+        echo "package com.yuzhi.banghui;" > app/src/main/java/com/yuzhi/banghui/MainActivity.java
+        echo "import android.app.Activity;" >> app/src/main/java/com/yuzhi/banghui/MainActivity.java
+        echo "import android.os.Bundle;" >> app/src/main/java/com/yuzhi/banghui/MainActivity.java
+        echo "import android.webkit.WebView;" >> app/src/main/java/com/yuzhi/banghui/MainActivity.java
+        echo "import android.webkit.WebSettings;" >> app/src/main/java/com/yuzhi/banghui/MainActivity.java
+        echo "public class MainActivity extends Activity {" >> app/src/main/java/com/yuzhi/banghui/MainActivity.java
+        echo "    @Override" >> app/src/main/java/com/yuzhi/banghui/MainActivity.java
+        echo "    protected void onCreate(Bundle savedInstanceState) {" >> app/src/main/java/com/yuzhi/banghui/MainActivity.java
+        echo "        super.onCreate(savedInstanceState);" >> app/src/main/java/com/yuzhi/banghui/MainActivity.java
+        echo "        WebView webView = new WebView(this);" >> app/src/main/java/com/yuzhi/banghui/MainActivity.java
+        echo "        WebSettings webSettings = webView.getSettings();" >> app/src/main/java/com/yuzhi/banghui/MainActivity.java
+        echo "        webSettings.setJavaScriptEnabled(true);" >> app/src/main/java/com/yuzhi/banghui/MainActivity.java
+        echo "        webView.loadUrl(\"file:///android_asset/index.html\");" >> app/src/main/java/com/yuzhi/banghui/MainActivity.java
+        echo "        setContentView(webView);" >> app/src/main/java/com/yuzhi/banghui/MainActivity.java
+        echo "    }" >> app/src/main/java/com/yuzhi/banghui/MainActivity.java
+        echo "}" >> app/src/main/java/com/yuzhi/banghui/MainActivity.java
+    - name: Build with Gradle
+      run: gradle assembleDebug
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: MyApp-APK
+        path: app/build/outputs/apk/debug/app-debug.apk
